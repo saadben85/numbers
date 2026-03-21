@@ -849,6 +849,18 @@ function restart() {
 
 document.addEventListener('click', () => { if(!audioCtx) getAudio(); }, {once:true});
 
+// ── PWA: Install prompt ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.createElement('button');
+  btn.textContent = '📲 تثبيت التطبيق';
+  btn.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:14px 28px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;border:none;border-radius:50px;font-family:Tajawal,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;z-index:9999;box-shadow:0 4px 20px rgba(59,130,246,0.5);';
+  btn.onclick = () => { deferredPrompt.prompt(); btn.remove(); };
+  document.body.appendChild(btn);
+});
+
 // ── PWA: Service Worker ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
