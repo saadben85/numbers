@@ -532,4 +532,329 @@
     <path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" stroke-width="4.5"/>
     <path d="M30,0 V40 M0,20 H60" stroke="white" stroke-width="11"/>
     <path d="M30,0 V40 M0,20 H60" stroke="#C8102E" stroke-width="6.5"/>
-  </symbo
+  </symbol>
+</svg>
+
+<script>
+const options = { rangeMin: 1, rangeMax: 100, count: '20', speed: '5000', lang: 'both' };
+
+function setRange(min, max, btn) {
+  options.rangeMin = min;
+  options.rangeMax = max;
+  btn.closest('.btn-group').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setOption(key, val, btn) {
+  options[key] = val;
+  btn.closest('.btn-group').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setCount(val, btn) {
+  btn.closest('.btn-group').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const input = document.getElementById('custom-count');
+  if (val === 'custom') {
+    options.count = '';
+    input.style.display = 'block';
+    input.focus();
+    input.oninput = () => { options.count = input.value; };
+  } else {
+    options.count = val;
+    input.style.display = 'none';
+    input.value = '';
+  }
+}
+
+// ---- FLAGS (inline SVG, no <use> dependency) ----
+const FLAGS = {
+  fr: `<svg viewBox="0 0 60 40" width="62" height="42" style="border-radius:7px;display:block;box-shadow:0 4px 16px rgba(0,0,0,0.5)">
+    <rect width="20" height="40" fill="#002395"/>
+    <rect x="20" width="20" height="40" fill="#EDEDED"/>
+    <rect x="40" width="20" height="40" fill="#ED2939"/>
+  </svg>`,
+  en: `<svg viewBox="0 0 60 40" width="62" height="42" style="border-radius:7px;display:block;box-shadow:0 4px 16px rgba(0,0,0,0.5)">
+    <rect width="60" height="40" fill="#012169"/>
+    <line x1="0" y1="0" x2="60" y2="40" stroke="white" stroke-width="7"/>
+    <line x1="60" y1="0" x2="0" y2="40" stroke="white" stroke-width="7"/>
+    <line x1="0" y1="0" x2="60" y2="40" stroke="#C8102E" stroke-width="4.5"/>
+    <line x1="60" y1="0" x2="0" y2="40" stroke="#C8102E" stroke-width="4.5"/>
+    <rect x="24" y="0" width="12" height="40" fill="white"/>
+    <rect x="0" y="14" width="60" height="12" fill="white"/>
+    <rect x="26" y="0" width="8" height="40" fill="#C8102E"/>
+    <rect x="0" y="16" width="60" height="8" fill="#C8102E"/>
+  </svg>`
+};
+
+// ---- TIMER BAR ----
+let timerBarRAF = null;
+function startTimerBar(duration) {
+  const bar = document.getElementById('timer-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  bar.classList.remove('running', 'warning');
+  void bar.offsetWidth;
+  bar.classList.add('running');
+  bar.style.transition = `width ${duration}ms linear`;
+  bar.style.width = '0%';
+
+  // turn red at last 30%
+  const warnAt = duration * 0.4;
+  timerBarRAF = setTimeout(() => {
+    bar.classList.add('warning');
+  }, duration - warnAt);
+}
+function stopTimerBar() {
+  const bar = document.getElementById('timer-bar');
+  if (timerBarRAF) { clearTimeout(timerBarRAF); timerBarRAF = null; }
+  const computed = parseFloat(getComputedStyle(bar).width);
+  const parent   = parseFloat(getComputedStyle(bar.parentElement).width);
+  bar.style.transition = 'none';
+  bar.style.width = (computed / parent * 100) + '%';
+  bar.classList.remove('running');
+}
+let audioCtx;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function beep(freq, type, dur, vol) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol || 0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+const beepNew     = () => beep(700, 'sine', 0.07, 0.1);
+const beepCorrect = () => { beep(880,'sine',0.09,0.1); setTimeout(()=>beep(1100,'sine',0.08,0.09),90); };
+const beepWrong   = () => beep(180, 'square', 0.14, 0.09);
+const beepWin     = () => { beep(660,'sine',0.1); setTimeout(()=>beep(880,'sine',0.1),120); setTimeout(()=>beep(1100,'sine',0.15),240); };
+
+// ---- GAME STATE ----
+let numbers=[], current=0, correctCount=0, wrongCount=0;
+let timer=null, streak=0, maxStreak=0;
+let frStats={correct:0,total:0}, enStats={correct:0,total:0};
+let currentLang='';
+
+// ---- COUNTDOWN ----
+function startCountdown() {
+  // validate count
+  const cnt = parseInt(options.count);
+  if (!cnt || cnt < 1) {
+    const input = document.getElementById('custom-count');
+    input.style.border = '1.5px solid var(--red)';
+    input.focus();
+    setTimeout(() => input.style.border = '1.5px solid var(--accent)', 1200);
+    return;
+  }
+  getAudio(); // unlock audio
+  const overlay = document.getElementById('countdown-overlay');
+  const numEl   = document.getElementById('countdown-num');
+  overlay.classList.add('show');
+  let c = 3;
+  numEl.textContent = c;
+  beep(440,'sine',0.12);
+  const iv = setInterval(() => {
+    c--;
+    if (c > 0) {
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = '';
+      numEl.textContent = c;
+      beep(440,'sine',0.12);
+    } else {
+      clearInterval(iv);
+      overlay.classList.remove('show');
+      startGame();
+    }
+  }, 900);
+}
+
+// ---- START GAME ----
+function startGame() {
+  const min   = options.rangeMin || 1;
+  const max   = options.rangeMax || 100;
+  const count = parseInt(options.count);
+
+  // Language distribution: true random per number (no predictable pattern)
+  const selectedLang = options.lang || 'both';
+  numbers = Array.from({length: count}, () => ({
+    num:  Math.floor(Math.random() * (max - min + 1)) + min,
+    lang: selectedLang === 'both' ? (Math.random() < 0.5 ? 'fr' : 'en') : selectedLang
+  }));
+
+  current=0; correctCount=0; wrongCount=0;
+  streak=0; maxStreak=0;
+  frStats={correct:0,total:0}; enStats={correct:0,total:0};
+
+  // Build dots
+  const sb = document.getElementById('status-bar');
+  sb.innerHTML = '';
+  numbers.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className = 'dot'; d.id = `dot-${i}`;
+    sb.appendChild(d);
+  });
+
+  document.getElementById('setup-panel').style.display   = 'none';
+  document.getElementById('results-panel').style.display = 'none';
+  document.getElementById('game-panel').style.display    = 'block';
+
+  updateTopBar();
+  showNumber();
+}
+
+function showNumber() {
+  if (current >= numbers.length) { endGame(); return; }
+
+  const {num, lang} = numbers[current];
+  currentLang = lang;
+
+  // dots
+  if (current > 0) document.getElementById(`dot-${current-1}`)?.classList.remove('current');
+  document.getElementById(`dot-${current}`)?.classList.add('current');
+
+  // progress
+  document.getElementById('progress-bar').style.width = (current / numbers.length * 100) + '%';
+
+  const numEl   = document.getElementById('number-display');
+  const flagCon = document.getElementById('flag-container');
+  const flagSvg = document.getElementById('flag-svg');
+  const langLbl = document.getElementById('lang-label');
+
+  numEl.classList.remove('show','fr-num','en-num');
+  flagCon.classList.remove('show');
+
+  setTimeout(() => {
+    const flagSVGs = {
+      fr: `<svg viewBox="0 0 60 40" width="62" height="42" style="border-radius:7px;display:block;box-shadow:0 4px 16px rgba(0,0,0,0.5)"><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#EDEDED"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg>`,
+      en: `<svg viewBox="0 0 60 40" width="62" height="42" style="border-radius:7px;display:block;box-shadow:0 4px 16px rgba(0,0,0,0.5)"><rect width="60" height="40" fill="#012169"/><line x1="0" y1="0" x2="60" y2="40" stroke="white" stroke-width="8"/><line x1="60" y1="0" x2="0" y2="40" stroke="white" stroke-width="8"/><line x1="0" y1="0" x2="60" y2="40" stroke="#C8102E" stroke-width="5"/><line x1="60" y1="0" x2="0" y2="40" stroke="#C8102E" stroke-width="5"/><rect x="24" y="0" width="12" height="40" fill="white"/><rect x="0" y="14" width="60" height="12" fill="white"/><rect x="26" y="0" width="8" height="40" fill="#C8102E"/><rect x="0" y="16" width="60" height="8" fill="#C8102E"/></svg>`
+    };
+    flagSvg.innerHTML = flagSVGs[lang];
+    langLbl.textContent = lang === 'fr' ? 'FRANÇAIS' : 'ENGLISH';
+    langLbl.className = `lang-label ${lang}`;
+
+    numEl.textContent = num;
+    numEl.classList.add('show', lang === 'fr' ? 'fr-num' : 'en-num');
+    flagCon.classList.add('show');
+
+    // pulse ring
+    const card = document.getElementById('display-card');
+    const ring = document.createElement('div');
+    ring.className = 'pulse-ring';
+    card.appendChild(ring);
+    setTimeout(() => ring.remove(), 650);
+
+    beepNew();
+
+    // real timer bar + auto-advance
+    const speed = parseInt(options.speed);
+    startTimerBar(speed);
+    timer = setTimeout(() => {
+      answer(false); // time's up = wrong
+    }, speed);
+  }, 110);
+}
+
+function answer(correct) {
+  if (current >= numbers.length) return;
+  if (timer) { clearTimeout(timer); timer = null; }
+  stopTimerBar();
+
+  const {lang} = numbers[current];
+  const card   = document.getElementById('display-card');
+
+  if (correct) {
+    correctCount++; streak++;
+    if (streak > maxStreak) maxStreak = streak;
+    if (lang==='fr') { frStats.correct++; frStats.total++; } else { enStats.correct++; enStats.total++; }
+    card.classList.remove('flash-wrong'); void card.offsetWidth; card.classList.add('flash-correct');
+    beepCorrect();
+    const dot = document.getElementById(`dot-${current}`);
+    if (dot) { dot.classList.remove('current'); dot.classList.add('correct'); }
+  } else {
+    wrongCount++; streak = 0;
+    if (lang==='fr') frStats.total++; else enStats.total++;
+    card.classList.remove('flash-correct'); void card.offsetWidth; card.classList.add('flash-wrong');
+    beepWrong();
+    const dot = document.getElementById(`dot-${current}`);
+    if (dot) { dot.classList.remove('current'); dot.classList.add('wrong'); }
+  }
+
+  current++;
+  updateTopBar();
+  setTimeout(showNumber, 280);
+}
+
+function updateTopBar() {
+  document.getElementById('score-correct').textContent = correctCount;
+  document.getElementById('score-wrong').textContent   = wrongCount;
+  document.getElementById('score-total').textContent   = current;
+}
+
+function stopGame() {
+  if (timer) { clearTimeout(timer); timer = null; }
+  stopTimerBar();
+  endGame();
+}
+
+function endGame() {
+  if (timer) { clearTimeout(timer); timer = null; }
+  stopTimerBar();
+  document.getElementById('game-panel').style.display = 'none';
+
+  const total = correctCount + wrongCount;
+  const pct   = total > 0 ? Math.round(correctCount / total * 100) : 0;
+
+  document.getElementById('res-pct').textContent     = pct + '%';
+  document.getElementById('res-correct').textContent = correctCount;
+  document.getElementById('res-wrong').textContent   = wrongCount;
+  document.getElementById('res-total').textContent   = total;
+  document.getElementById('res-streak').textContent  = maxStreak;
+
+  // Sub message
+  const msgs = ['ممتاز جداً! 🔥', 'أداء رائع! 👏', 'جيد، استمر! 💪', 'تحتاج مزيداً من التدريب 📚'];
+  const idx  = pct >= 90 ? 0 : pct >= 75 ? 1 : pct >= 50 ? 2 : 3;
+  document.getElementById('results-sub').textContent = msgs[idx];
+
+  // Arc animation
+  const dashOffset = 408 - (408 * pct / 100);
+  setTimeout(() => { document.getElementById('score-arc').style.strokeDashoffset = dashOffset; }, 150);
+
+  // Lang stats
+  const frPct = frStats.total > 0 ? Math.round(frStats.correct / frStats.total * 100) : 0;
+  const enPct = enStats.total > 0 ? Math.round(enStats.correct / enStats.total * 100) : 0;
+  document.getElementById('fr-stat').textContent = `${frStats.correct} / ${frStats.total} (${frPct}%)`;
+  document.getElementById('en-stat').textContent = `${enStats.correct} / ${enStats.total} (${enPct}%)`;
+  setTimeout(() => {
+    document.getElementById('fr-bar').style.width = frPct + '%';
+    document.getElementById('en-bar').style.width = enPct + '%';
+  }, 250);
+
+  document.getElementById('results-panel').style.display = 'block';
+  if (pct >= 80) setTimeout(beepWin, 300);
+}
+
+function restart() {
+  document.getElementById('results-panel').style.display = 'none';
+  document.getElementById('setup-panel').style.display   = 'flex';
+}
+
+document.addEventListener('click', () => { if(!audioCtx) getAudio(); }, {once:true});
+
+// ── PWA: Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
