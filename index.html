@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-512.png">
 <title>تدريب الأرقام</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #080b14;
@@ -26,7 +26,7 @@
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family: 'Tajawal', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
@@ -56,7 +56,7 @@
   /* HEADER */
   .header { text-align: center; margin-bottom: 28px; }
   .header h1 {
-    font-family: 'Bebas Neue', 'Arial Black', Impact, sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 2.4rem;
     letter-spacing: 5px;
     background: linear-gradient(135deg, #3b82f6, #a78bfa);
@@ -93,7 +93,7 @@
     border: 1.5px solid var(--border);
     border-radius: 12px;
     color: var(--muted);
-    font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family: 'Tajawal', sans-serif;
     font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -112,7 +112,7 @@
     border: none;
     border-radius: 14px;
     color: white;
-    font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family: 'Tajawal', sans-serif;
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
@@ -146,7 +146,7 @@
     border-radius: 50px;
     padding: 6px 14px;
     color: var(--muted);
-    font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family: 'Tajawal', sans-serif;
     font-size: 0.82rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -221,7 +221,7 @@
   .lang-label.en { color: #f87171; }
 
   .number-display {
-    font-family: 'Bebas Neue', 'Arial Black', Impact, sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 9rem;
     line-height: 1;
     background: linear-gradient(135deg, #ffffff, #a0aec0);
@@ -260,7 +260,7 @@
     padding: 18px;
     border: none;
     border-radius: 16px;
-    font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-family: 'Tajawal', sans-serif;
     font-size: 1.15rem;
     font-weight: 700;
     cursor: pointer;
@@ -296,7 +296,7 @@
   }
   #countdown-overlay.show { display: flex; }
   .countdown-num {
-    font-family: 'Bebas Neue', 'Arial Black', Impact, sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 9rem;
     color: var(--accent);
     animation: countdown-pop 0.85s ease-out forwards;
@@ -319,7 +319,7 @@
     text-align: center;
   }
   .results-title {
-    font-family: 'Bebas Neue', 'Arial Black', Impact, sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-size: 2rem;
     letter-spacing: 3px;
     color: var(--accent);
@@ -338,12 +338,12 @@
     border: 3px solid var(--border);
   }
   .score-circle svg { position: absolute; inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); }
-  .score-pct { font-family: 'Bebas Neue', 'Arial Black', Impact, sans-serif; font-size: 2.6rem; color: var(--text); line-height: 1; position: relative; }
+  .score-pct { font-family: 'Bebas Neue', sans-serif; font-size: 2.6rem; color: var(--text); line-height: 1; position: relative; }
   .score-lbl { font-size: 0.68rem; color: var(--muted); letter-spacing: 1px; position: relative; }
 
   .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 14px; }
   .stat-box { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
-  .stat-box .val { font-family: 'Bebas Neue', 'Arial Black', Impact, sans-serif; font-size: 2rem; line-height: 1; }
+  .stat-box .val { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; }
   .stat-box .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
   .stat-box.green .val { color: var(--green); }
   .stat-box.red .val { color: var(--red); }
@@ -365,7 +365,7 @@
     width: 100%; padding: 15px;
     background: linear-gradient(135deg, #3b82f6, #6366f1);
     border: none; border-radius: 14px;
-    color: white; font-family: 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
+    color: white; font-family: 'Tajawal', sans-serif;
     font-size: 1rem; font-weight: 700; cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 4px 20px rgba(59,130,246,0.3);
@@ -396,19 +396,19 @@
     <div class="option-group">
       <label>نطاق الأرقام</label>
       <div class="btn-group">
-        <button class="opt-btn" onclick="setRange(1000,10000,this)">١٠٠٠-١٠٠٠٠</button>
-        <button class="opt-btn" onclick="setRange(500,1000,this)">٥٠٠-١٠٠٠</button>
-        <button class="opt-btn" onclick="setRange(100,500,this)">١٠٠-٥٠٠</button>
-        <button class="opt-btn active" onclick="setRange(1,100,this)">١-١٠٠</button>
+        <button class="opt-btn active" onclick="setRange(1,100,this)">1-100</button>
+        <button class="opt-btn" onclick="setRange(100,500,this)">100-500</button>
+        <button class="opt-btn" onclick="setRange(500,1000,this)">500-1000</button>
+        <button class="opt-btn" onclick="setRange(1000,1000000,this)">1000-1000000</button>
       </div>
     </div>
     <div class="option-group">
       <label>عدد الأرقام في الجلسة</label>
       <div class="btn-group">
+        <button class="opt-btn active" onclick="setCount('20',this)">20</button>
+        <button class="opt-btn" onclick="setCount('40',this)">40</button>
+        <button class="opt-btn" onclick="setCount('60',this)">60</button>
         <button class="opt-btn" onclick="setCount('custom',this)">مخصص</button>
-        <button class="opt-btn" onclick="setCount('60',this)">٦٠</button>
-        <button class="opt-btn" onclick="setCount('40',this)">٤٠</button>
-        <button class="opt-btn active" onclick="setCount('20',this)">٢٠</button>
       </div>
       <input type="number" id="custom-count" min="1" max="500" placeholder="اكتب العدد..."
         style="display:none;margin-top:10px;width:100%;padding:11px 14px;background:var(--bg);border:1.5px solid var(--accent);border-radius:12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:1rem;outline:none;text-align:center;" />
@@ -416,20 +416,20 @@
     <div class="option-group">
       <label>اللغة</label>
       <div class="btn-group">
-        <button class="opt-btn" onclick="setOption('lang','en',this)">🇬🇧 بريطانيا</button>
-        <button class="opt-btn active" onclick="setOption('lang','both',this)">🇫🇷🇬🇧 كلاهما</button>
         <button class="opt-btn" onclick="setOption('lang','fr',this)">🇫🇷 فرنسا</button>
+        <button class="opt-btn active" onclick="setOption('lang','both',this)">🇫🇷🇬🇧 كلاهما</button>
+        <button class="opt-btn" onclick="setOption('lang','en',this)">🇬🇧 بريطانيا</button>
       </div>
     </div>
 
     <div class="option-group">
       <label>سرعة ظهور الأرقام</label>
       <div class="btn-group">
-        <button class="opt-btn" onclick="setOption('speed','500',this)">٠.٥ ث</button>
-        <button class="opt-btn" onclick="setOption('speed','1000',this)">١ ث</button>
-        <button class="opt-btn" onclick="setOption('speed','2000',this)">٢ ث</button>
-        <button class="opt-btn" onclick="setOption('speed','3000',this)">٣ ث</button>
-        <button class="opt-btn active" onclick="setOption('speed','5000',this)">٥ ث</button>
+        <button class="opt-btn active" onclick="setOption('speed','5000',this)">5 ث</button>
+        <button class="opt-btn" onclick="setOption('speed','3000',this)">3 ث</button>
+        <button class="opt-btn" onclick="setOption('speed','2000',this)">2 ث</button>
+        <button class="opt-btn" onclick="setOption('speed','1000',this)">1 ث</button>
+        <button class="opt-btn" onclick="setOption('speed','500',this)">0.5 ث</button>
       </div>
     </div>
     <button class="start-btn" onclick="startCountdown()">▶ ابدأ التدريب</button>
@@ -764,7 +764,6 @@ function showNumber() {
 }
 
 function answer(correct) {
-  if (current >= numbers.length) return;
   if (timer) { clearTimeout(timer); timer = null; }
   stopTimerBar();
 
@@ -848,18 +847,6 @@ function restart() {
 }
 
 document.addEventListener('click', () => { if(!audioCtx) getAudio(); }, {once:true});
-
-// ── PWA: Install prompt ──
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const btn = document.createElement('button');
-  btn.textContent = '📲 تثبيت التطبيق';
-  btn.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:14px 28px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;border:none;border-radius:50px;font-family:Tajawal,sans-serif;font-size:1rem;font-weight:700;cursor:pointer;z-index:9999;box-shadow:0 4px 20px rgba(59,130,246,0.5);';
-  btn.onclick = () => { deferredPrompt.prompt(); btn.remove(); };
-  document.body.appendChild(btn);
-});
 
 // ── PWA: Service Worker ──
 if ('serviceWorker' in navigator) {
